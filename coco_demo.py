@@ -11,7 +11,7 @@ from model.coco_cvae import CVAE
 
 device = torch.device('cuda')
 save_dir = '/home/karljackab/coco_CVAE_paraphrase/demo_res/coco_res.json'
-weight_dir = '/home/karljackab/coco_CVAE_paraphrase/coco_weight/23_2.4385976791381836.pkl'
+weight_dir = '/home/karljackab/coco_CVAE_paraphrase/coco_weight/20_2.735809087753296.pkl'
 num2word_path = '/home/karljackab/coco_CVAE_paraphrase/data/coco_num2word.json'
 
 
@@ -42,8 +42,10 @@ test_loader = DataLoader(dataset=dataset.CVAE('test'),
     num_workers=2,
     collate_fn = collat)
 
-model = CVAE(device).to(device)
-model.load_state_dict(torch.load(weight_dir))
+# model = CVAE(device).to(device)
+
+model = torch.load(weight_dir)
+
 with open(num2word_path, 'r') as f:
     num2term_map = json.load(f)
 
@@ -57,14 +59,24 @@ with torch.no_grad():
         output = model.inference((termsA, termsB), Dec_input_terms\
             , Share_enc=False)
 
-        for pred, ground in zip(output, ground_truth):
-            gold_terms_set = []
-            predict_terms_set = []
+        input_sentence = termsA.max(-1)[-1]
+
+        for pred, ground, inp in zip(output, ground_truth, input_sentence):
+            gold_words_set = []
+            predict_words_set = []
+            input_words_set = []
+
+            for i in range(len(inp)):
+                term = num2term_map[str(int(inp[i]))]
+                if term == ' ':
+                    break
+                input_words_set.append(term)
+
             for i in range(len(ground)):
                 term = num2term_map[str(int(ground[i]))]
                 if term == 'End':
                     break
-                gold_terms_set.append(term)
+                gold_words_set.append(term)
                 
             for i in range(len(pred)):
                 key = pred[i].max(0)[-1]
@@ -72,11 +84,12 @@ with torch.no_grad():
                 term = num2term_map[key]
                 if term == 'End':
                     break
-                predict_terms_set.append(term)
+                predict_words_set.append(term)
             final.append({
-                "Gold": ' '.join(gold_terms_set),
-                "Predict": ' '.join(predict_terms_set)
+                "Input": ' '.join(input_words_set),
+                "Ground truth": ' '.join(gold_words_set),
+                "Predict": ' '.join(predict_words_set)
             })
 
 with open(save_dir, 'w') as f:
-    json.dump(final, f)
+    json.dump(final, f, indent=4)

@@ -15,10 +15,11 @@ Epoch = 100
 Show_Iter = 100
 LR = 0.001
 save_dir = '/home/karljackab/coco_CVAE_paraphrase/coco_weight'
-weight_dir = '/home/karljackab/coco_CVAE_paraphrase/coco_weight/23_2.4385976791381836.pkl'
+weight_dir = '/home/karljackab/coco_CVAE_paraphrase/coco_weight/15_2.750883102416992.pkl'
 num2word_path = '/home/karljackab/coco_CVAE_paraphrase/data/coco_num2word.json'
 # ====================================================
 # ====================================================
+Resume_Weight = True
 TRAIN = True
 TEST = False
 # ====================================================
@@ -78,10 +79,10 @@ test_loader = DataLoader(dataset=dataset.CVAE('test'),
 print(f'train len {len(train_loader)}')
 print(f'test len {len(test_loader)}')
 
-model = CVAE(device).to(device)
-# model.load_state_dict(torch.load(weight_dir))
-
-# model = torch.load(weight_dir).to(device)
+if not Resume_Weight:
+    model = CVAE(device).to(device)
+else:
+    model = torch.load(weight_dir).to(device)
 
 optimizer = torch.optim.Adam(model.parameters(), lr=LR)
 with open(num2word_path, 'r') as f:
@@ -89,8 +90,15 @@ with open(num2word_path, 'r') as f:
 Loss = nn.CrossEntropyLoss()
 kl_ratio = 0
 word_drop_ratio = 0.3
+###########
+# This is training parameter!
+# At the beginning of training, we should set recon_ratio at a high number
+# After a few epoch, we could set recon_ratio lower and KL_threshold higher
+####
 kl_ratio_progress = 0.001
-recon_ratio = 80
+KL_threshold = 0.01
+recon_ratio = 1
+###########
 
 for epoch in range(Epoch):
     if TRAIN:
@@ -121,9 +129,9 @@ for epoch in range(Epoch):
             if iters % 100 == 0:
                 if not keep:
                     kl_ratio += kl_ratio_progress
-                if not keep and kl_ratio > 0.01:
+                if not keep and kl_ratio > KL_threshold:
                     keep = True
-                    cnt = 0.01/kl_ratio_progress
+                    cnt = KL_threshold/kl_ratio_progress
                 if keep:
                     cnt -= 1
                     if cnt <= 0:
