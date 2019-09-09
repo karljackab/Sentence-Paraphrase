@@ -11,15 +11,15 @@ from model.coco_cvae import CVAE
 
 # ====================================================
 device = torch.device('cuda')
-Epoch = 100
+Epoch = 22
 Show_Iter = 100
 LR = 0.001
 save_dir = '/home/karljackab/coco_CVAE_paraphrase/coco_weight'
-weight_dir = '/home/karljackab/coco_CVAE_paraphrase/coco_weight/15_2.750883102416992.pkl'
+weight_dir = '/home/karljackab/coco_CVAE_paraphrase/coco_weight/9_2.8101179599761963.pkl'
 num2word_path = '/home/karljackab/coco_CVAE_paraphrase/data/coco_num2word.json'
 # ====================================================
 # ====================================================
-Resume_Weight = True
+Resume_Weight = False
 TRAIN = True
 TEST = False
 # ====================================================
@@ -91,10 +91,6 @@ Loss = nn.CrossEntropyLoss()
 kl_ratio = 0
 word_drop_ratio = 0.3
 ###########
-# This is training parameter!
-# At the beginning of training, we should set recon_ratio at a high number
-# After a few epoch, we could set recon_ratio lower and KL_threshold higher
-####
 kl_ratio_progress = 0.001
 KL_threshold = 0.01
 recon_ratio = 1

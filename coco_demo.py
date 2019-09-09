@@ -5,13 +5,14 @@ import torch.nn as nn
 from torch.utils.data import DataLoader
 import json
 from torch.optim.lr_scheduler import StepLR
+from tqdm import tqdm
 
 import model.coco_dataset as dataset
 from model.coco_cvae import CVAE
 
 device = torch.device('cuda')
 save_dir = '/home/karljackab/coco_CVAE_paraphrase/demo_res/coco_res.json'
-weight_dir = '/home/karljackab/coco_CVAE_paraphrase/coco_weight/20_2.735809087753296.pkl'
+weight_dir = '/home/karljackab/coco_CVAE_paraphrase/weight/coco_weight.chkpt'
 num2word_path = '/home/karljackab/coco_CVAE_paraphrase/data/coco_num2word.json'
 
 
@@ -52,8 +53,7 @@ with open(num2word_path, 'r') as f:
 with torch.no_grad():
     test_len = len(test_loader)
     final = []
-    for idx, data in enumerate(test_loader):
-        print(f'{idx}/{test_len}')
+    for data in tqdm(test_loader):
         termsA, termsB, Dec_input_terms, ground_truth\
             = preprocess(data, device)
         output = model.inference((termsA, termsB), Dec_input_terms\
